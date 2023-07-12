@@ -28,7 +28,7 @@
 
 ​    gRPC的调用方式如图所示：
 
-![grpc结构](E:\coding\knowledge-repo\knowledge-repo-java\attachement\[grpc]struct.png)
+![grpc结构](.\attachment\[grpc]struct.png)
 
 从图中可以看出gRPC的一些特点：
 
@@ -103,7 +103,7 @@ message HelloReply {
 
 ​    定义完成后，使用idea上的`protobuf`插件，它根据该文件生成代码文件。
 
-![proto](./attachement/[grpc]proto.png)
+![proto](.\attachment\[grpc]proto.png)
 
 - `HelloGrpc`为gRPC服务的代码定义，其中包括`HelloGrpc.HelloImplBase`，**服务端**继承实现该类以提供对应的具体的业务逻辑；`HelloGrpc.newBlockingSub`和`HelloGrpc.newSub`分别为**客户端**提供接口的阻塞和非阻塞调用API。
 - `HelloRequest`为定义的请求类，`HelloReply`是定义的响应类。`xxxOrBuilder`为用户提供了对应类的`Builder`，这些接口在代码生成的时候就会被对应的参数类实现。
