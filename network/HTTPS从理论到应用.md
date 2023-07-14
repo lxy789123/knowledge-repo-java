@@ -243,9 +243,9 @@ client =======[公钥B加密的对称密钥X]======> 中间人(解密得到对�
 
 ​    Q: 回想上文中的描述，哪里需要用到CA机构的密钥？
 
-    ```
+```
 openssl genrsa -out root_private_key.pem 2048
-    ```
+```
 
 2. *生成根证书`root.crt`*
 
@@ -372,16 +372,16 @@ grpc:
             protocols: TLSv1.2
 ```
 
-    -  `file:`前缀表示配置的值表示一个文件。
-    -  `trust-cert-collection`：就是`truststore，`用来存储CA机构根证书。它的生成方式同`keystore`，只是内容不同而已。如果需要数个CA机构根证书，把他们一起打包成一个`jks`文件就行。此处只有一个我们自己的CA机构，因此可以直接使用`.crt`根证书。
-    -  `key-store`:  见名知意。这里是客户端的keystore文件。
-    -  `certificate-chain`: 客户端证书。如果是单向验证，该字段可以不配。https可以支持单向验证，即客户端验证服务端；也支持双向验证，即客户端和服务端都需要证书证明自己的身份。                                                                                                                                                                                                                                                                                                                                                                    
-    -  `private-key`: 见名知意。
-    -  `protocols`: 指明`tls`协议版本号。
+- `file:`前缀表示配置的值表示一个文件。
+- `trust-cert-collection`：就是`truststore，`用来存储CA机构根证书。它的生成方式同`keystore`，只是内容不同而已。如果需要数个CA机构根证书，把他们一起打包成一个`jks`文件就行。此处只有一个我们自己的CA机构，因此可以直接使用`.crt`根证书。
+- `key-store`:  见名知意。这里是客户端的keystore文件。
+- `certificate-chain`: 客户端证书。如果是单向验证，该字段可以不配。https可以支持单向验证，即客户端验证服务端；也支持双向验证，即客户端和服务端都需要证书证明自己的身份。
+- `private-key`: 见名知意。
+- `protocols`: 指明`tls`协议版本号。
 
 ​    再看服务端文件：
 
-    ```yaml
+```yaml
 grpc:
   server:
     port: 9898
@@ -399,7 +399,7 @@ server:
     key-store-type: PKCS12
     key-store: src/main/resources/certificate/server.p12
     key-alias: undertow
-    ```
+```
 
 ​    除了`keysotre`信息更全面之外，没有其他新增的配置。
 
