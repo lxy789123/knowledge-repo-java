@@ -38,7 +38,7 @@ Netty: tbc
 Camel:
 
 ```
-Camel Tutorial (working)
+Camel Tutorial
 ```
 
 Algorithm: tbc

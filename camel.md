@@ -28,7 +28,7 @@ Apache Camel使用URIs来直接与任何传输或者消息模型（例如HTTP,Ka
 
 **Route**
 
-​    Camel中最基本的概念就是路由。路由指用户在Camel中配8置的、将数据从一处流转到另一处的对象。流转的两个端点被称作`endpoints`。
+​    Camel中最基本的概念就是路由。路由指用户在Camel中配置的、将数据从一处流转到另一处的对象。流转的两个端点被称作`endpoints`。
 
 ​    你可以在camel中使用java语法或者xml语法来建立路由。以下给出了一个示例展示将文件从一个文件夹移动到另一个。
 
@@ -62,7 +62,7 @@ prefix:mainpart?option1=xxx&option2=yyy
 |   Direct   | 组合你自己的Camel路由   | direct:     |
 | Salesforce | 从Salesforce中存取数据  | salesforce: |
 
-所有的组件列表请看官网：[Camel Components](https://camel.apache.org/components/3.20.x/index.html).
+所有的官方组件列表请看官网：[Camel Components](https://camel.apache.org/components/3.20.x/index.html).
 
 **Enterprise Integration Patterns (EIPs)**
 
