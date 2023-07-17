@@ -10,7 +10,7 @@ Next, the following  three subjects  is in my consider firstly . Every time a su
 Three subjects is:
 
 ```
-Postgre Sql
+JVM
 Spring and Spring-boot
 netty
 ```
