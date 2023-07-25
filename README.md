@@ -7,12 +7,12 @@ A knowledge repository for java developer. Thanks for pointing out mistakes and 
 
 Next, the following  three subjects  is in my consider firstly . Every time a subject is finished, I will renew the plan in this markdown file. 
 
-Three subjects is:
+Following three subjects is:
 
 ```
 JVM
-Spring and Spring-boot
 netty
+Spring and Spring-boot
 ```
 
 ---
@@ -34,6 +34,8 @@ http2(tbc)
 **Spring:** tbc
 
 **Spring boot**: tbc
+
+**Redis**: tbc
 
 **Database**: tbc
 
