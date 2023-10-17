@@ -10,52 +10,30 @@ Next, the following  three subjects  is in my consider firstly . Every time a su
 Three subjects is:
 
 ```
-JVM
-Spring and Spring-boot
 netty
+CSAPP
+JVM
+Spring
 ```
 
----
-
-**[Contents]**
-
-**Network:**
-
-```
-http
-https
-http2(tbc)
-```
-
-**Java basis**: tbc
-
-**JVM:** tbc
-
-**Spring:** tbc
-
-**Spring boot**: tbc
-
-**Database**: tbc
-
-```
-Basic Theory
-MySql
-PostgreSql
-```
-
-**gRPC**: 
-
-```
- gPRC Tutorial
-```
-
-**Netty**: tbc
-
-**Camel**:
-
-```
-Camel Tutorial
-```
-
-**Algorithm**: tbc
+TodoList:
+|          Contont           | Start Time | Finished |                          Remark                           |
+| :------------------------: | :--------: | :------: | :-------------------------------------------------------: |
+|          Network           |  20230717  |    Y     |                                                           |
+|         Java Basis         |            |    -     |  [TypeReference](https://zhuanlan.zhihu.com/p/262271430)  |
+|    Java Virtual Machine    |  20230815  |    -     |                                                           |
+|           Spring           |            |    -     |                                                           |
+|        Spring Boot         |            |    -     |                                                           |
+|    Spring Cloud Gateway    |            |    -     |                                                           |
+|     [Database] Theory      |            |    -     |                                                           |
+|      [Database] MySQL      |            |    -     |                                                           |
+|   [Database] PostgreSQL    |  20230717  |    -     |                                                           |
+|            gRPC            |  20230714  |    -     |                                                           |
+|           Netty            |            |    -     |                                                           |
+|        Apache Camel        |  20230714  |    -     |                                                           |
+|         Algorithm          |            |    -     |                                                           |
+|          RocketMq          |            |    -     | [RocketMq](https://www.cnblogs.com/duanxz/p/3509074.html) |
+|     深入理解计算机系统     |            |    -     |     Computer Systems<br />A Programmer's Perspective      |
+|        操作系统导论        |            |    -     |                     Operating Systems                     |
+| TCP/IP 详解<br />卷1：协议 |            |    -     |                    TCP/IP ILLUSTRATED                     |
 
