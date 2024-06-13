@@ -373,3 +373,202 @@ public void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction);
 optional value is null
 ```
 
+- `stream`
+
+`stream()`允许我们将 `Optional` 对象转化为一个流 （`Stream`），以便能够更灵活地处理包含或不包含值的情况。方法定义如下：
+
+```java
+Stream<T> stream()
+```
+
+当Optional不为空，stream会返回一个包含这个值的流。
+
+当Optional为空，stream返回空流。
+
+示例：
+
+```java
+    @Test
+    public void streamTest1() {
+        List<Optional<String>> list = List.of(
+                Optional.of("死磕 java 并发"),
+                Optional.of("死磕 java 新特性"),
+                Optional.empty(),
+                Optional.of("死磕 Netty"),
+                Optional.empty()
+        );
+        list.stream()
+                .flatMap(Optional::stream)
+                .filter(o -> o.startsWith("死磕"))
+                .map(val -> val + " —— https://skjava.com/")
+                .forEach(System.out::println);
+    }
+// 结果......
+死磕 java 并发 —— https://skjava.com/
+死磕 java 新特性 —— https://skjava.com/
+死磕 Netty —— https://skjava.com/
+```
+
+### 6.try-with-resource
+
+**前情提要**：
+
+java7中`try-with-resource`的使用
+
+1. 资源必须实现`AutoCloseable`或`Closeable`接口
+2. 语法。`try(Resource resourceTest = new Resource())`
+3. 自动关闭，即时发生了异常。
+4. 多个资源。
+
+```java
+try (Resource1 r1 = new Resource1();
+    Resource2 r2 = new Resource2();
+    Resource3 r3 = new Resource3()) {
+  //业务代码
+} catch (Exception e) {
+  
+}
+```
+
+注意，资源的关闭顺序和它们在try中声明的顺序相反。
+
+**Java9中的改进**
+
+之前的资源，必须在try语句中定义和初始化。像下面这样的代码在8及之前版本会报错：
+
+```java
+Resource1 r = new Resource1();
+try (r) {
+  //try后括号中的r会报错
+}
+...
+```
+
+9之后的版本，只要资源是final或等效于final的变量，就可以突破以上约束，仅在try后括号中写出，无需定义声明。
+
+### 7.Stream增强
+
+**新增`ofNullable()`**
+
+用于创建一个 `Stream`，其中包含一个非空元素或者为空。该方法的主要目的是简化处理可能包含 `null` 值的集合时的代码，以便避免显式地检查和过滤 `null` 值。其定义如下：
+
+```java
+public static<T> Stream<T> ofNullable(T t) {
+    return t == null ? Stream.empty()
+                     : StreamSupport.stream(new Streams.StreamBuilderImpl<>(t), false);
+}
+```
+
+- 如果参数 `t` 不为 null，则返回一个包含该非空元素的单元素 Stream。
+
+- 如果参数 `t` 为 null，则返回一个空的 Stream。
+
+这就意味着我们可以使用 `Stream.ofNullable()` 方法来快速创建一个只包含非空元素的 Stream，且无需担心处理 null 值的边界情况。比如，我们有一个 List 包含一些可能为 null 的字符串，我们可以使用 `Stream.ofNullable()` 来创建一个只包含非空字符串的 Stream：
+
+```java
+@Test
+public void ofNullableTest() {
+    List<String> list = Arrays.asList("死磕 Java",null,"死磕 Java 新特性","死磕 Netty",null,null);
+    list.stream()
+        .flatMap(Stream::ofNullable)
+        .forEach(System.out::println);
+
+}
+// 结果
+"死磕 Java"
+"死磕 Java 新特性"
+"死磕 Netty"
+```
+
+**重载`iterate()`**
+
+Java 8 中的 `iterate()` 用于创建一个无限流，其元素由给定的初始值和一个生成下一个元素的函数产生，为了终止流我们需要使用一些限制性的函数来操作，例如 `limit()`：
+
+```java
+@Test
+public void iterate() {
+    Stream.iterate(1,v -> v + 2)
+            .limit(10)
+            .forEach(System.out::println);
+}
+```
+
+在 Java 9 中为了限制该无序流的长度，增加了一个谓词，方法定义如下：
+
+```java
+static <T> Stream<T> iterate(T seed, Predicate<? super T> hasNext, UnaryOperator<T> next)
+```
+
+- `seed`：初始元素，作为序列的第一个元素。
+- `hasNext`：用于在生成元素时限制序列的长度。如果 `hasNext` 返回 `true`，则`next` 函数就会继续生成下一个元素；一旦 `hasNext` 返回 `false`，序列生成将停止。
+
+例如
+
+```java
+@Test
+public void iterateTest() {
+    Stream.iterate(1,n -> n < 20,v -> v + 2)
+            .forEach(System.out::println);
+}
+```
+
+当生成的值大于等于 20 时，序列生成就停止。
+
+该重载方法允许我们更加方便地生成元素序列，并在需要时限制序列的长度，这在处理无限序列的情况下非常有用。
+
+**新增`dropWhile()`和`takeWhile()`**
+
+Java 9 引入 `dropWhile()` 和 `takeWhile()`，这两个方法允许我们根据谓词条件从流中选择或删除元素，直到遇到第一个不满足条件的元素。
+
+`dropWhile()` 和 `takeWhile()`，用于处理流中的前缀元素，而不必处理整个流，为处理 Stream 流提供了更多的灵活性。
+
+### 8.新增只读集合和工厂方法
+
+**Java 8 创建不可变集合**
+
+`Collections.unmodifiableXXX()`，其中`XXX`可以是`List`、`Set`或`Map`，例如要创建一个只读 List：
+
+```java
+@Test
+public void test() {
+    List<String> list = new ArrayList<>();
+    list.add("死磕 Java 新特性");
+    list.add("死磕 Netty");
+    // 转换为只读集合
+    list = Collections.unmodifiableList(list);
+}
+```
+
+使用 `Collections.unmodifiableList()` 将 List 转换为不可变集合，如果我们使用 `add()` 来添加元素，会报 `UnsupportedOperationException` 异常信息。
+
+这种方式虽然有效，但是比较麻烦，它需要额外的步骤来处理，而且容易出错。
+
+**Java 9 创建不可变集合**
+
+为了解决 Java 8 的问题，Java 9 引入不可变集合和对应的工厂方法，目的就在于提供更安全、更高效的方式来创建不可变集合，同时确保原始集合无法被修改。
+
+`List`、`Set`、`Map` 都提供了对应的工厂方法来创建不可变集合，我们这里列出 `List` 的：
+
+```java
+static <E> List<E>  of()
+static <E> List<E>  of(E e1)
+static <E> List<E>  of(E e1, E e2)
+static <E> List<E>  of(E e1, E e2, E e3)
+static <E> List<E>  of(E e1, E e2, E e3, E e4)
+static <E> List<E>  of(E e1, E e2, E e3, E e4, E e5)
+static <E> List<E>  of(E e1, E e2, E e3, E e4, E e5, E e6)
+static <E> List<E>  of(E e1, E e2, E e3, E e4, E e5, E e6, E e7)
+static <E> List<E>  of(E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8)
+static <E> List<E>  of(E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8, E e9)
+static <E> List<E>  of(E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8, E e9, E e10)
+//varargs
+static <E> List<E>  of(E... elements)
+```
+
+看到这么多重载方法是不是有点儿懵逼，感觉是不是只需要有 `of()` 和 `of(E... elements)` 这两个方法就可以了，从实现的效果上来说，确实是可以。`of(E... elements)` 确实是一个非常灵活的方法，可以适用于多种情况，但是Java 9 引入多个重载的 `List.of()` 方法并不是为了提供不同数量的参数选择的灵活性，而是为了性能和可读性的考虑。每个 `List.of()`方法的重载版本都是针对特定的参数数量进行了优化，以提高性能和代码清晰度。当使用 `of(E... elements)` 时，Java运行时需要创建一个数组以容纳传递的元素（**Java 的可变参数，会被编译器转型为一个数组**），这可能会引入一些额外的开销，尤其是在创建小型 `List` 时。而多个重载的 `List.of()` 方法避免了这种开销，因为它们直接接受参数，而无需创建数组。所以，看着懵逼，但是性能杠杠的。
+
+不可变的 List 具有如下几个特征：
+
+1. 这些列表是不可变的。调用任何改变 List 的方法（如`add()`、`remove()`、`replaceAll()`、`clear()`），都会抛出 `UnsupportedOperationException`。
+2. 它们不允许 `null` 元素。 尝试添加 `null` 元素将导致 `NullPointerException`。
+3. 列表中元素的顺序与提供的参数或提供的数组中的元素的顺序相同。
