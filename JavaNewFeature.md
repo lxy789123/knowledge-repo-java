@@ -579,5 +579,174 @@ static <E> List<E>  of(E... elements)
 
 - Future的局限
 
+1. 缺乏回调机制。
+2. 无法取消任务。
+3. 缺乏异常处理机制。
+4. 单一结果。
+5. 无法进行链式调用。
+6. 无法组合多任务。
 
+- CompletableFuture功能概况
 
+1. 提供回调机制
+2. 提供异常处理机制
+3. 可以取消任务
+4. 提供异步编程能力
+5. 支持组合、链式操作
+
+- API
+
+1. 构建异步操作
+
+| 方法              | 说明                                      | 方法返回 |
+| ----------------- | ----------------------------------------- | -------- |
+| runAsync          | 异步执行任务，默认 ForkJoinPool 线程池    | 无返回值 |
+| supplyAsync       | 异步执行任务，默认 ForkJoinPool 线程池    | 有返回值 |
+| `completedFuture` | 创建一个已经完成的 CompletableFuture 对象 | 有返回值 |
+
+2. 两个线程依次执行
+
+| 方法            | 说明                                                         | 方法返回值           |
+| --------------- | ------------------------------------------------------------ | -------------------- |
+| `thenApply`     | 获取前一个线程的执行结果，第二个线程处理该结果，生成一个新的 CompletableFuture 对象 | 有返回值             |
+| `thenAccept`    | 获取前一个线程的执行结果，第二个线程消费结果，不会返还给调用端 | 无返回值             |
+| `thenRun`       | 第一个线程执行完后，再执行，它忽略第一个线程的执行结果，也不返回结果 | 无返回值             |
+| `thenCompose`   | 获取前一个线程的执行结果，对其进行组合，返回新的 CompletableFuture 对象 | 有返回值             |
+| `whenComplete`  | 获取前一个线程的结果或异常，消费                             | 不影响上一线程返回值 |
+| `exceptionally` | 线程异常执行，配合whenComplete 使用                          | 有返回值             |
+| `handle`        | 相当于whenComplete + exceptionally                           | 有返回值             |
+
+3. 等待2个线程都执行完
+
+| 方法             | 说明                                          | 方法返回值 |
+| ---------------- | --------------------------------------------- | ---------- |
+| `thenCombine`    | 2个线程都要有返回值，等待都结束，结果合并转换 | 有返回值   |
+| `thenAcceptBoth` | 2个线程都要有返回值，等待都结束，结果合并消费 | 无返回值   |
+| `runAfterBoth`   | 2个线程无需有返回值，等待都结束，执行其他逻辑 | 无返回值   |
+
+4. 等待2个线程任一执行完
+
+| 方法             | 说明                                            | 方法返回值 |
+| ---------------- | ----------------------------------------------- | ---------- |
+| `applyToEither`  | 2个线程都要有返回值，等待任一结束，转换其结果   | 有返回值   |
+| `acceptEither`   | 2个线程都要有返回值，等待任一结束，消费其结果   | 无返回值   |
+| `runAfterEither` | 2个线程无需有返回值，等待任一结束，执行其他逻辑 | 无返回值   |
+
+5. 多个线程等待
+
+| 方法    | 说明                   | 方法返回值 |
+| ------- | ---------------------- | ---------- |
+| `anyOf` | 多个线程任一执行完返回 | 有返回值   |
+| `allOf` | 多个线程全部执行完返回 | 无返回值   |
+
+**Java9中的改进**
+
+- 新的工厂方法
+
+```java
+//该方法允许我们快速创建一个已经有结果的 CompletableFuture，这对于单元测试或需要立即返回结果的场景非常有用。
+public static <U> CompletableFuture<U> completedFuture(U value);
+//此方法创建一个异常完成（异常终止）的 CompletableFuture 实例
+//方法接受的参数为 Throwable，表明为异常终止，它为异步编程提供了一种简洁的方式来表示已知的失败情况，这对于错误处理和异常测试场景非常重要。
+public static <U> CompletableFuture<U> failedFuture(Throwable ex);
+```
+
+- 支持超时和延迟执行
+
+超时：
+
+```java
+//允许为 CompletableFuture 设置一个超时时间。如果在指定的超时时间内未完成，CompletableFuture 将以 TimeoutException 完成
+//该方法为 CompletableFuture 提供了超时机制，这对于避免永久挂起的异步操作和保证响应性至关重要
+public CompletableFuture<T> orTimeout(long timeout, TimeUnit unit);
+/**
+ * 示例
+ */
+@Test
+public void orTimeTest() {
+   try {
+       CompletableFuture completableFuture = CompletableFuture.runAsync(()->{
+           System.out.println("异步任务开始执行....");
+           try {
+               TimeUnit.SECONDS.sleep(5);
+           } catch (InterruptedException e) {
+               throw new RuntimeException(e);
+           }
+       }).orTimeout(2,TimeUnit.SECONDS);
+
+       completableFuture.join();
+   } catch (Exception e) {
+           System.out.println(e);
+  }
+}
+/**
+ * 执行结果
+ */
+异步任务开始执行....
+java.util.concurrent.CompletionException: java.util.concurrent.TimeoutException
+
+```
+
+超时返回默认值：
+
+```java
+//该允许在指定的超时时间内如果未完成，则用一个默认值来完成 CompletableFuture
+//为默认默认值。该方法提供了一种优雅的回退机制，确保即使在超时的情况下也能保持异步流的连续性和完整性。
+public CompletableFuture<T> completeOnTimeout(T value, long timeout, TimeUnit unit);
+
+/*
+ * 示例
+ */
+@Test
+public void completeOnTimeoutTest() {
+    CompletableFuture<String> completableFuture = CompletableFuture.supplyAsync(()->{
+        System.out.println("异步任务开始执行....");
+        try {
+            TimeUnit.SECONDS.sleep(5);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return "死磕 Java 新特性";
+    }).completeOnTimeout("死磕 Java",2,TimeUnit.SECONDS);
+    System.out.println("执行结果为：" + completableFuture.join());
+}
+/*
+* 执行结果
+*/
+异步任务开始执行....
+执行结果为：死磕 Java
+```
+
+- 支持延迟执行
+
+```java
+//CompletableFuture 提供了delayedExecutor() 来支持延迟执行，该方法创建一个延迟执行的 Executor，可以将任务的执行推迟到未来某个时间点。方法定义如下：
+public static Executor delayedExecutor(long delay, TimeUnit unit, Executor executor);
+
+/**
+ * 示例
+ */
+@Test
+public void completeOnTimeoutTest() {
+    // 创建一个延迟执行的Executor
+    Executor delayedExecutor = CompletableFuture.delayedExecutor(3, TimeUnit.SECONDS);
+
+    // 使用延迟的Executor执行一个简单任务
+    CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+        System.out.println("任务延迟后执行...");
+    }, delayedExecutor);
+
+    // 等待异步任务完成
+    future.join();
+}
+```
+
+- 支持子类化
+
+| 方法                  | 功能                                                         | 备注 |
+| --------------------- | ------------------------------------------------------------ | ---- |
+| newIncompleteFuture() | 创建一个新的、不完整的 `CompletableFuture` 实例， 子类可以重写这个方法来返回 `CompletableFuture` 的子类实例，允许在整个 `CompletableFuture` API 中自定义实例的行为。 |      |
+| defaultExecutor()     | 该方法提供 `CompletableFuture` 操作的默认执行器，子类可以重写此方法以提供不同的默认执行器，这对于定制任务执行策略特别有用。 |      |
+| copy()                | 创建一个与当前 `CompletableFuture` 状态相同的新实例。子类可以重写此方法以确保复制的实例是特定子类的实例，而不仅仅是 `CompletableFuture`。 |      |
+
+## 二、Java10
