@@ -572,3 +572,12 @@ static <E> List<E>  of(E... elements)
 1. 这些列表是不可变的。调用任何改变 List 的方法（如`add()`、`remove()`、`replaceAll()`、`clear()`），都会抛出 `UnsupportedOperationException`。
 2. 它们不允许 `null` 元素。 尝试添加 `null` 元素将导致 `NullPointerException`。
 3. 列表中元素的顺序与提供的参数或提供的数组中的元素的顺序相同。
+
+### 9.改进的CompletableFuture
+
+**前情提要**——**Java8中的CompletableFuture**
+
+- Future的局限
+
+
+
