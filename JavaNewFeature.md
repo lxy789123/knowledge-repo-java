@@ -21,14 +21,14 @@ module java.module01 {
 
 提供一个交互式的编程工具，在该工具中，开发人员可以在一个命令界面即时编写、编辑和执行java代码片段，而无需创建java源文件。
 
-#### **特点**：
+**2.1 特点**：
 
 - 即时反馈。
 - 代码片段。
 - 自动导入。`JShell`自动导入常用Java包和类。
 - 脚本化。可以保存多个命令在脚本文件中，通过`JShell`命令执行。
 
-#### **JShell的使用**：
+**2.2 JShell的使用**：
 
 1. 启动`JShell`
 
@@ -129,7 +129,7 @@ jshell> /exit
 |  再见
 ```
 
-#### **常用命令**:
+**2.3 常用命令**:
 
 | 命令       | 短命令 | 描述                                                     |
 | ---------- | ------ | -------------------------------------------------------- |
@@ -151,13 +151,13 @@ jshell> /exit
 
 ### 3.接口私有方法
 
-#### 接口支持私有方法的好处：
+**3.1 接口支持私有方法的好处**：
 
 - 接口更好演化。
 - 代码复用。
 - 防止子类滥用。
 
-#### 接口私有方法的若干限制：
+**3.2 接口私有方法的若干限制**：
 
 - 私有方法不能是抽象的。
 - 私有方法只在接口内部使用，无法被接口的实现类或者外部类访问。
@@ -165,7 +165,7 @@ jshell> /exit
 - 私有静态方法可以再其他静态和非静态方法中使用。
 -  私有非静态方法不能再私有静态方法内部使用
 
-#### 代码示例：
+3.3 代码示例：
 
 a. 接口
 
@@ -256,7 +256,7 @@ privateStaticMethod
 
 ### 4.String底层存储结构修改
 
-#### **Java 8之前**:
+**4.1 Java 8之前**:
 
 ```java
 public final class String
@@ -268,11 +268,11 @@ public final class String
 }
 ```
 
-#### **优化原因**：
+**4.2 优化原因**：
 
 每个 `char` 都以 2 个字节存储在内存中。然而 Oracle 的 JDK 开发人员调研了成千上万个应用程序的 `heap dump` 信息，他们注意到大多数字符串都是以 `Latin-1` 字符编码表示的，它只需要一个字节存储就够了，两个字节完全是浪费，这比 `char` 数据类型存储少 50%（1 个字节）。
 
-#### **Java 9优化**:
+**4.3 Java 9优化**:
 
 ```java
 public final class String
@@ -291,7 +291,7 @@ public final class String
 - 节省内存：对于包含大量`ASCII`字符的字符串，内存占用大幅减少，因为每个字符只占用一个字节而不是两个字节。
 - 提高性能。由于字符串的存储结构与编码方式更加紧凑，字符串操作的性能也有所提高。
 
-#### **注意事项**：
+**4.4 注意事项**：
 
 **a.编码格式**：
 
@@ -411,7 +411,7 @@ Stream<T> stream()
 
 ### 6.try-with-resource
 
-#### **前情提要**
+**6.1 前情提要**
 
 java7中`try-with-resource`的使用
 
@@ -432,7 +432,7 @@ try (Resource1 r1 = new Resource1();
 
 注意，资源的关闭顺序和它们在try中声明的顺序相反。
 
-#### **Java9中的改进**
+**6.2 Java9中的改进**
 
 之前的资源，必须在try语句中定义和初始化。像下面这样的代码在8及之前版本会报错：
 
@@ -448,7 +448,7 @@ try (r) {
 
 ### 7.Stream增强
 
-#### **新增`ofNullable()`**
+**7.1 新增`ofNullable()`**
 
 用于创建一个 `Stream`，其中包含一个非空元素或者为空。该方法的主要目的是简化处理可能包含 `null` 值的集合时的代码，以便避免显式地检查和过滤 `null` 值。其定义如下：
 
@@ -480,7 +480,7 @@ public void ofNullableTest() {
 "死磕 Netty"
 ```
 
-#### **重载`iterate()`**
+**7.2 重载`iterate()`**
 
 Java 8 中的 `iterate()` 用于创建一个无限流，其元素由给定的初始值和一个生成下一个元素的函数产生，为了终止流我们需要使用一些限制性的函数来操作，例如 `limit()`：
 
@@ -516,7 +516,7 @@ public void iterateTest() {
 
 该重载方法允许我们更加方便地生成元素序列，并在需要时限制序列的长度，这在处理无限序列的情况下非常有用。
 
-#### **新增`dropWhile()`和`takeWhile()`**
+**7.3 新增`dropWhile()`和`takeWhile()`**
 
 Java 9 引入 `dropWhile()` 和 `takeWhile()`，这两个方法允许我们根据谓词条件从流中选择或删除元素，直到遇到第一个不满足条件的元素。
 
@@ -524,7 +524,7 @@ Java 9 引入 `dropWhile()` 和 `takeWhile()`，这两个方法允许我们根�
 
 ### 8.新增只读集合和工厂方法
 
-#### **Java 8 创建不可变集合**
+**8.1 Java 8 创建不可变集合**
 
 `Collections.unmodifiableXXX()`，其中`XXX`可以是`List`、`Set`或`Map`，例如要创建一个只读 List：
 
@@ -543,7 +543,7 @@ public void test() {
 
 这种方式虽然有效，但是比较麻烦，它需要额外的步骤来处理，而且容易出错。
 
-#### **Java 9 创建不可变集合**
+**8.2 Java 9 创建不可变集合**
 
 为了解决 Java 8 的问题，Java 9 引入不可变集合和对应的工厂方法，目的就在于提供更安全、更高效的方式来创建不可变集合，同时确保原始集合无法被修改。
 
@@ -575,7 +575,7 @@ static <E> List<E>  of(E... elements)
 
 ### 9.改进的CompletableFuture
 
-#### **前情提要**——**Java8中的CompletableFuture**
+**9.1 前情提要**——**Java8中的CompletableFuture**
 
 - Future的局限
 
@@ -639,7 +639,7 @@ static <E> List<E>  of(E... elements)
 | `anyOf` | 多个线程任一执行完返回 | 有返回值   |
 | `allOf` | 多个线程全部执行完返回 | 无返回值   |
 
-#### **Java9中的改进**
+**9.2 Java9中的改进**
 
 - 新的工厂方法
 
@@ -768,7 +768,7 @@ public void completeOnTimeoutTest() {
 
 ### 1.局部变量类型推断
 
-#### 好处
+**1.1 好处**
 
 ```
 1.减少样板代码
@@ -776,7 +776,7 @@ public void completeOnTimeoutTest() {
 3.提高开发效率
 ```
 
-#### 使用场景
+**1.2 使用场景**
 
 1. 局部变量声明
 
@@ -815,7 +815,7 @@ try (var reader = new BufferedReader(new FileReader(path))){
 }
 ```
 
-#### 不适用场景
+**1.3 不适用场景**
 
 1. 使用`null`初始化变量时
 
@@ -857,6 +857,29 @@ var object = null;
 
 
 ### 2.不可变集合的增强
+
+新增`copyOf()`方法，用于创建现有集合的**不可变副本**，分为以下两种情况：
+
+1. 如果原集合已经是不可变的，那么返回原集合。
+2. 如果原集合不是不可变的，那么则创建一个新的对象。
+
+示例
+
+```java
+@Test
+public void copyOfTest() {
+    var list1 = List.of("死磕 Java 新特性","死磕 Java 并发","死磕 Netty");
+    var copyList1 = List.copyOf(list1);
+    System.out.println(list1 == copyList1);
+
+    var list2 = Arrays.asList("死磕 Java 新特性","死磕 Java 并发","死磕 Netty");
+    var copyList2 = List.copyOf(list2);
+    System.out.println(list2 == copyList2);
+}
+===========
+  true
+  false
+```
 
 
 
