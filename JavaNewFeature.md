@@ -891,3 +891,326 @@ public void copyOfTest() {
 | `Collectors.toUnmodifiableList`<br/>`Collectors.toUnmodifiableSet`<br/>`Collectors.toUnmodifiableMap` |       这些方法允许将Stream的元素收集到不可修改的集合中       |
 |                    `Optinal.orElseThrow`                     | `Optional.get()`的一个更易读的替代<br/>它在值不存在时抛出`NoSuchElementException` |
 
+## 三、Java11(LTS)
+
+### 0.概述
+
+1. 基于嵌套的访问控制
+2. 新增String API
+3. 全新的HTTP客户端API
+4. 局部变量类型推断的升级
+5. Epsilon低开销垃圾回收器
+6. ZGC可伸缩低延迟垃圾收集器
+7. 废弃Nashorn JavaScript引擎
+8. 增加File API
+9. Optional API增强
+10. 飞行记录器（Flight Recorder）
+11. 运行单文件源码程序
+12. 删除Java EE和corba模块
+
+### 1.新增String API
+
+| 方法名    | 描述                               | 备注             |
+| --------- | ---------------------------------- | ---------------- |
+| isBlank() | 检查字符串是否为空或仅包含空白字符 | 换行符也视为空白 |
+| lines()   | 分割获取字符串流(Stream)           |                  |
+| strip()   | 去除字符串首尾的空白字符           |                  |
+| repeat()  | 复制字符串                         |                  |
+
+**1.1 isBlank()**
+
+```java
+"".isBlank();// true
+" ".isBlank();// true
+" \n\t".isBlank();// true
+```
+
+**1.2 lines()**
+
+该方法返回一个流，该流由字符串中的行组成，使用行结束符作为分隔符。
+
+```java
+"这是一个字符串示例\n我在学习line示例".lines().forEach(System.out::println);
+//output
+这是一个字符串示例
+我在学习line示例
+```
+
+该方法可以处理不同平台上的换行符，无论是`\n`或者`\r`还是`\r\n`
+
+**1.3 strip()**
+
+去除首尾的空白字符。如果字符串中间有空白字符，则不会去掉。
+
+```java
+//全角空格
+"　全角空格strip　".strip();
+"　全角空格trim　".trim();
+//半角空格
+" 半角空格strip ".strip();
+" 半角空格trim ".trim();
+//结果
+"全角空格strip";
+"　全角空格trim　";
+"半角空格strip";
+"半角空格trim";
+```
+
+注意上例，`strip()`可以去除**全角字符空格**，`trim()`则不能。
+
+- `trim()`只一处ASCII字符集中定义的空白字符。
+- `strip()`移除所有Unicode字符集中定义的空白字符。
+
+strip()还有两个方法。
+
+- `stripLeading()`：仅移除开头的空白字符。
+- `stripTrailing()`：仅移除末尾的空白字符。
+
+**1.4 repeat()**
+
+将字符串重复指定的次数，并将这些重复的字符串连接为一个i新的字符串。
+
+```java
+System.out.println("练习新特性！".repeat(3));
+//output
+练习新特性！练习新特性！练习新特性！
+```
+
+- 如果传入次数为`0`，结果就是一个空的字符串。
+- 如果次数小于`0`，会抛出`IllegalArgumentException`。
+
+### 2.新Files API
+
+新增三个api：
+
+- `readString()`：读取文件内容。
+- `writeString()`：写入文件内容。
+- `isSameFile()`：比较两个路径是否指向文件系统中的同一个文件。
+
+**2.1 readString()**
+
+该方法可以一次性读取文件的全部内容，避免使用`BufferedReader`类的繁琐过程。
+
+```java
+@Test
+public void readStringTest() throws IOException {
+  Path path = Paths.get("test.txt");
+  String content = Files.readString(path);
+  System.out.println(content);
+}
+```
+
+**2.2 writeString()**
+
+该方法用于将字符串内容直接写入文件中，避免了我们使用`BufferedWrite`类的繁琐过程。
+
+```java
+@Test
+public void writeStringTest() throws IOException {
+  Path path = Paths.get("test.txt");
+  String content = "测试话术";
+  Files.writeString(path, content);
+}
+```
+
+**2.3 isSameFile()**
+
+用于比价连个路径是否是同一个文件。
+
+```java
+@Test
+public void isSameFileTest() throws IOException {
+  Path p1 = new Path("test.txt");
+  Path p2 = new Path("texxt.txt");
+  boolean result = Files.isSameFile(p1, p2);
+}
+```
+
+### 3.Optional API的增强
+
+`isEmpty()`判断容器是否为空，如果包含的值不存在，则返回true。
+
+```java
+Optional<String> optional = Optional.empty();
+if (optional.isEmpty()) {
+  System.out.println("optinal is empty");
+}
+```
+
+### 4.局部变量类型推断增强
+
+可以在lambda表达式中使用`var`。
+
+```java
+Function<String, String> func = (@NonNull var str) -> str.toUpperCase();
+```
+
+### 5.全新的HTTP客户端API
+
+**5.1 已有的`HttpURLConnection`类存在的问题**
+
+- API设计不直观。比如需要手动处理输入输出流。
+- 不支持HTTP/2。
+- 性能问题。高并发情况下性能不好。
+- 缺乏现代web特性的支持。例如`WebSocket`就不支持。
+- 缺乏异步处理能了。
+- 错误处理繁琐。
+- 连接管理不足。不支持链接吃、不支持自动重试。
+- 不可变对象和线程安全。`HttpURLConnection`不是不可变的，也不是线程安全的。
+
+基于此，`HttpClient`具有如下优势：
+
+- 支持HTTP/2。
+- 支持**WebSocket**通信。
+- API更简洁。
+- 支持同步和异步。
+- 支持链式调用。
+- 更好的错误处理机制。
+
+**5.2 核心类一览**
+
+- `java.net.http.HttpClient`
+- `java.net.http.HttpRequest`
+- `java.net.http.HttpResponse`
+
+**5.3 HttpClient**
+
+核心API列表
+
+|       方法       |                   配置属性                   |
+| :--------------: | :------------------------------------------: |
+|    version()     |               指定HTTP协议版本               |
+| followRedirets() |                设定重定向策略                |
+|     proxy()      |                设置代理服务器                |
+| authenticator()  |               设置HTTP身份验证               |
+| connectTimeout() |        设置建立HTTP利阿奴许的超市时间        |
+|    executor()    | 设置自定义的Executor，该Executor用于异步任务 |
+| cookieHandler()  |               设置Cookie处理器               |
+| sslParameters()  |              设置SSL/TLS的配置               |
+|    priority()    |               设置请求的优先级               |
+
+**5.4 HttpRequest**
+
+| 方法名           | 配置项                           |
+| ---------------- | -------------------------------- |
+| uri()            | 设置请求的统一资源定位符URI      |
+| timeout()        | 设置请求的超时时间               |
+| header()         | 添加单个请求头                   |
+| headers()        | 批量添加请求头                   |
+| version()        | 指定HTTP协议版本                 |
+| expectContinue() | 设置`Expect: 100-Continue`请求头 |
+| setHeader()      | 设置特定的请求头                 |
+
+`HttpRequest`支持`GET`,`POST`,`DELETE`等方法，如下：
+
+| 方法名                                                | 描述                         |
+| ----------------------------------------------------- | ---------------------------- |
+| GET                                                   |                              |
+| POST(HttpResponse.BodyPublisher body)                 | 创建一个带有请求体的POST请求 |
+| PUT(HttpResponse.BodyPublisher body)                  | 创建一个带有请求体的PUT请求  |
+| DELETE()                                              | 创建一个DELETE方法           |
+| method(String method, HttpRequest.BodyPublisher body) | 创建一个自定义方法的请求     |
+
+例如:
+
+```java
+HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://www.skjava.com"))
+                .version(HttpClient.Version.HTTP_2)
+                .timeout(Duration.ofSeconds(10))
+                .GET()
+                .build();
+```
+
+**5.5 HttpResponse**
+
+当我们利用 `HttpClient` 发送 HTTP 请求时，需要指定一个`HttpResponse.BodyHandler`来处理响应体。这个处理器决定了如何处理响应数据，比如将其作为String，如下：
+
+```java
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+```
+
+方法列表如下：
+
+| 方法名               | 描述                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| `statusCode()`       | 获取HTTP响应的状态码                                         |
+| `body()`             | 获取HTTP响应体                                               |
+| `headers()`          | 获取HTTP响应头                                               |
+| `uri()`              | 获取请求的URI                                                |
+| `version()`          | 获取响应的HTTP协议版本                                       |
+| `request()`          | 获取生成此响应的`HttpRequest`对象                            |
+| `previousResponse()` | 获取重定向之前的响应，如果有的话                             |
+| `sslSession()`       | 获取SSL会话信息，如果在SSL连接上获得响应，则为`Optional<SSLSession>` |
+| `trailers()`         | 异步获取HTTP尾部头，返回`CompletableFuture<HttpHeaders>`     |
+
+**5.6 发送请求**
+
+- 同步请求
+
+```java
+    @Test
+    public void sendTest() {
+        // 构建 HttpClient 对象
+        HttpClient httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_2)     //HTTP版本为HTTP/2
+                .connectTimeout(Duration.ofSeconds(10))  // 连接超时为10秒
+                .build();
+
+        // 构建 HttpRequest 对象
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://skjava.com/article/list?page=3")) // uri
+                .timeout(Duration.ofSeconds(5))     // 超时时间为 5 秒
+                .GET().build();
+
+        HttpResponse<String> response = null;
+        try {
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                // 请求成功
+                System.out.println("Response Body: " +  response.body());
+            } else {
+                // 请求不成功
+                System.err.println("Response Status Code: " + response.statusCode());
+                System.err.println("Response Body: " + response.body());
+            }
+        } catch (IOException e) {
+            // 捕获并处理网络I/O错误
+            System.err.println("IOException occurred: " + e.getMessage());
+        } catch (InterruptedException e) {
+            // 捕获并处理请求过程中的中断异常
+            System.err.println("InterruptedException occurred: " + e.getMessage());
+            // 中断当前线程
+            Thread.currentThread().interrupt();
+        }
+    }
+```
+
+- 异步请求
+
+```java
+    @Test
+    public void sendAsyncTest() {
+        // 构建 HttpClient 对象
+        HttpClient httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_2)     //HTTP版本为HTTP/2
+                .connectTimeout(Duration.ofSeconds(10))  // 连接超时为10秒
+                .build();
+
+        // 构建 HttpRequest 对象
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://skjava.com/article/list?page=1")) // uri
+                .timeout(Duration.ofSeconds(5))     // 超时时间为 5 秒
+                .GET().build();
+
+        // 发送异步请求
+        CompletableFuture<HttpResponse<String>> futureResponse = httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+
+        // 处理响应
+        futureResponse.thenApply(HttpResponse::body)    // 获取响应体
+                .thenAccept(System.out::println)        // 打印响应体
+                .join();                // 等待所有的操作完成
+    }
+```
+
