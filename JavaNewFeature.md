@@ -1214,3 +1214,16 @@ HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.o
     }
 ```
 
+## 四、Java12
+
+- Shenandoah垃圾收集器
+- Switch表达式
+- JVM常量API
+- 微基准测试套件`Java Microbenchmark Harness(JMH)`
+- 新增String API
+- 新增Files API
+- 新增 NumberFormat API
+- 新增 Collectors API
+- 移除多余的ARM64实现
+- 默认CDS归档
+- G1的课中断mixed GC
