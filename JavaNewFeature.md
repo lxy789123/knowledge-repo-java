@@ -1216,6 +1216,8 @@ HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.o
 
 ## 四、Java12
 
+### 0.概述
+
 - Shenandoah垃圾收集器
 - Switch表达式
 - JVM常量API
@@ -1227,3 +1229,133 @@ HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.o
 - 移除多余的ARM64实现
 - 默认CDS归档
 - G1的课中断mixed GC
+
+### 1.Switch表达式
+
+**1.1 switch语句的缺陷**
+
+- "Fall-Through"行为：只要没有遇到break语句，就从第一个case语句一直穿透到最后。
+- 代码冗余：每隔case都需要重复类似的代码结构，增加了代码冗余。
+
+**1.2 改进**
+
+Switch表达式引入了`->`操作符，用于替代传统的冒号`(:)`。使用新的语法也不会有`fall-through`问题。
+
+```java
+public static String getTypeOfDay(String day) {
+  String typrOfDay = switch (day) {
+      case "MONDAY","TUESDAY","WEDNESDAY","THURSDAY", "FRIDAY" -> "Weekday";
+      case "SATURDAY", "SUNDAY" -> "Weekend";
+      default -> "Unknown";
+  };
+  return typeOfDay;
+}
+```
+
+可以看出
+
+- switrch语句的结果可以直接充当返回值；
+- `->`不会发生穿透；
+- 多值匹配；
+
+### 2.新增String API
+
+**2.1 indent(int n)**
+
+调整字符串缩进。如果n为正，则增加若干空格；为负则减少缩进，直到移除所有前导空格或达到指定缩进级别。
+
+```java
+@Test
+public void indentTest() {
+  //在每一行前增加三个空格
+  String indented = "skjava.com".indent(3);
+  //输出"   skjava.com"
+  System.out.println(indented);
+}
+```
+
+**2.2 transform(Function<? super String, ? extends R> f)**
+
+使用函数`f`对当前字符串进行转换。
+
+```java
+@Test
+public void transformTest() {
+  String str = "123";;
+  String str1 = str.transform(val -> val.indent(4));
+  String str2 = str.transform(val -> {
+    String val1 = "," + val.indent(3) + "''";
+    return val1.toUpperCase();
+  });
+  System.out.println(str1);
+  System.out.println(str2);
+}
+```
+
+**2.3 describeConstable()与resolveConstantDesc()**
+
+这两个方法是比较底层的方法，主要主要是为了支持 Java 中的常量描述功能，在日常的 Java 应用程序开发中可能不是经常使用。
+
+### 3.新增Files API
+
+`Files.mismatch(Path, Path)`比较两个文件的内容，返回两个文件第一次不匹配的位置索引，如果完全相同则返回-1；
+
+## 4.新增NumberFormat对复杂数字的格式化
+
+为了能够以更简洁的方式显示大数字，Java 12 引入紧凑数字格式化（`Compact Number Formatting`），这是对 NumberFormat 的一个补充：
+
+```java
+@Test
+public void NumberFormatTest() throws IOException {
+  NumberFormat compact = NumberFormat.getCompactNumberInstance(Locale.US, NumberFotmat.Style.SHORT);
+  System.out.println(compact.format(1000));
+  System.out.println(compact.format(10000));
+  System.out.println(compact.format(1000000));
+  System.out.println(compact.format(1000000000));
+}
+//结果如下
+1k
+10k
+1M
+1B
+```
+
+`getCompactNumberInstance(Locale locale, NumberFormat.Style formatStyle)` 有两个参数：
+
+- `Locale`:参数指定了数字格式化时使用的地区设置。不同的地区可能会以不同的方式缩写数字，比如美国，`10000`表示为`10K`，但是我国则表示为`1万`。可以试试`Locale.CHINESE`。
+- `NumberFormat.Style`:定义了紧凑数字格式的样式。主要包括`Long`和`SHORT`。例如，`1,000`在SHORT下可能表示为"`1K`",在`Long`下则表示为`1 thousand`。
+
+### 5.新增Collectors API
+
+`Collectors.teeing()`是对同一个流进行两种不同的收集操作，然后将这两种操作合并成一个。定义如下：
+
+```java
+Collectors.teeing(Collector<? super T,A,R1> downstream1, Collector<? super T,A,R2> downstream2, BiFunction<? super R1,? super R2,R> merger)
+```
+
+- `downstream1`和`downstream2`作用于流，用于生成一个结果。
+- `merge`用于合并两个`Collector`的结果。
+
+示例
+
+```java
+@Test
+public void teeingTest() throws IOException {
+  List<Integer> list = Arrays.asList(9,5,13,22,34,16,18,23,55);
+  
+  Map<String,Object> resultMap = list.stream()
+    .collect(Collectors.teeing(
+      Collectors.maxBy(Integer::compareTo),
+      Collectors.averagingInt(Integer::intValue),
+      (v1,v2) -> {
+        return Map.of("max",v1,"ave",v2);
+      }
+    ));
+  System.out.println(list + ",最大值：" + resultMap.get("max").toString() + "，；平均值：" + resultMap.get("ave").toString());
+}
+```
+
+
+
+## 五、Java13
+
