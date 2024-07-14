@@ -1359,3 +1359,189 @@ public void teeingTest() throws IOException {
 
 ## 五、Java13
 
+### 0.概述
+
+- 增强switch表达式
+- 文本块
+- 重构Socket API
+- 动态CDS
+- 增强ZGC释放未使用内存
+
+### 1.Switch表达式扩展
+
+Java12中增加了switch表达式直接返回，如下：
+
+```java
+    public static String getTypeOfDay(String day) {
+        String typeOfDay = switch (day) {
+            case "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY" -> "Weekday";
+            case "SATURDAY", "SUNDAY" -> "Weekend";
+            default -> "Unknown";
+        };
+        return typeOfDay;
+    }
+```
+
+但仍然限于单个值，如果还要增加条件判断，需要这样做：
+
+```java
+    public static String getTypeOfDay(String day) {
+        String typeOfDay = null;
+        switch (day) {
+            case "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY" -> typeOfDay  = "Weekday";
+            case "SATURDAY", "SUNDAY" -> typeOfDay = "Weekend";
+            default -> {
+                // 处理复杂逻辑
+                if (day.isEmpty()) {
+                    typeOfDay =  "day is empty";
+                } else {
+                    typeOfDay = "Unknown";
+                }
+            }
+        };
+        return typeOfDay;
+    }
+```
+
+可以看出，复杂的逻辑需要在`default`语句中采用`代码块`的方式处理。
+
+`Java13`中新增了`yield`关键字支持这种参数返回：
+
+```java
+    public static String getTypeOfDay(String day) {
+        return switch (day) {
+            case "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY" ->  "Weekday";
+            case "SATURDAY", "SUNDAY" ->  "Weekend";
+            default -> {
+                if (day.isEmpty()) {
+                   yield "day is empty";
+                } else {
+                    yield "Unknown";
+                }
+            }
+        };
+    }
+```
+
+### 2.文本块
+
+示例：
+
+```java
+String html = """
+              <html>
+                  <body>
+                      <p>skjava.com</p>
+                  </body>
+              </html>
+              """;
+```
+
+它的优势如下：
+
+- **多行字符串的简化**：在以往，编写多行字符串时，需要通过使用`\n`来实现换行，或者通过`+`来连接多个字符串。而使用文本块则让他们变得非常简单。
+- **自动格式化和缩进处理**：采用自动拼接的方式，是无法格式化和缩进处理的，而使用文本块则会自动处理字符串的格式化和缩进，它是基于字符串的起始位置来确定缩进级别。这就意味着代码的可读性得到了极大的提升，同时也保持了字符串内容的预期格式。
+- **方便的处理特殊字符**：在以前对于特殊字符我们是需要进行转义处理的，但使用文本块后，就不再需要对字符串中的特殊字符进行转义了。
+
+## 六、Java14
+
+### 0.概述
+
+- switch表达式
+- 增强文本块
+- Records
+- 模式匹配instanceof关键字
+- 改进`NullPointerException`提示信息
+- 打包工具
+- NUMA(`Non-Uniform Memory Access`)-Aware内存分配
+- JFR Event Streaming
+- mac os上的zgc
+- windows上的zgc
+- 弃用 ParallelScavenge + SerialOld GC 组合
+- 移除Pack200工具和API
+- 删除CMS垃圾收集器
+- 外部存储器访问API
+
+### 1.模式匹配的instanceof
+
+一个典型的`instanceof`使用场景如下：
+
+```java
+if (object instanceof String) {
+    // 返回 true，确认是 String 类型，强制转换为 String 类型后使用
+    String str = (String) object;
+}
+```
+
+这段代码有两个不足：
+
+1. 在知道对象的类型后还需要额外使用赋值语句，显得十分冗余。
+2.  类型检测和转换分离，可能会有`ClassCastException`异常
+
+模式匹配则不会有上述问题，其语法如下：
+
+```java
+if (obj instanceof String str) {
+    // 可以直接使用 str，而不需要显式的类型转换
+}
+```
+
+### 2.新增Record类型
+
+在过往的编码中，如果要访问一个POJO对象的成员变量，要么使用`getter()`,`setter()`要么使用`lombok`。
+
+新增的Record类型可以解决这个问题：
+
+```java
+record Person(String name,Integer age) { }
+```
+
+它声明了一个Record类型的类UserDTO，并说明其参数列表。
+
+这将自动为 UserDTO 生成一个带有**两个字段**、**一个全参构造器**、所有字段的 `getters`、`equals()`、`hashCode()`、`toString()` 方法的类。
+
+```java
+Person p = new Person("Leonard",20);
+p.name();
+p.age();
+```
+
+这样的好处有：
+
+1. **减少样板代码**：不需要手动编写 `getters`、`equals()`、`hashCode()`、`toString()` 方法。
+2. **增加代码清晰度**：它清晰地表达了这个类型仅用于数据传输的意图。
+3. **提高开发效率**：我们可以快速定义数据对象，而不必关心常规的、重复性的方法实现。
+4. **不可变性**：由于 Record 是不可变的，它天生就是线程安全的。
+
+Record是一个完美的**数据载体**。
+
+### 3.改进改进 NullPointerExceptions提示信息
+
+对于测试类进行连续成员变量调用：
+
+```java
+public class Test {
+    public static void main(String[] args) {
+        User user = new User();
+        System.out.println(user.getAddress().getProvince().length());
+    }
+}
+```
+
+出现空指针异常时的报错信息如下：
+
+```java
+Exception in thread "main" java.lang.NullPointerException
+  at com.skjava.java.feature.Test.main(Test.java:6)
+```
+
+至于是哪一次调用导致的`NPE`完全无法判断。
+
+优化后的报错信息如下：
+
+```java
+Exception in thread "main" java.lang.NullPointerException: Cannot invoke "*****.Address.getProvince()" because the return value of "*****.User.getAddress()" is null
+  at com.skjava.java.feature.Test.main(Test.java:6)
+```
+
+明确指出了`getAddress()`方法返回为空。
