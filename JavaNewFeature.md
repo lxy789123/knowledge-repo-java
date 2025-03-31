@@ -1545,3 +1545,10 @@ Exception in thread "main" java.lang.NullPointerException: Cannot invoke "*****.
 ```
 
 明确指出了`getAddress()`方法返回为空。
+
+这样的提示信息将会让我们能够快速准确地定位导致 `NullPointerException` 的具体原因，无需逐步调试或猜测，有助于快速修复问题，减少维护时间和成本。
+
+## 七、Java15
+
+### 0.概述
+
